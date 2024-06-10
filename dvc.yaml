@@ -1,0 +1,11 @@
+stages:
+  train:
+    cmd: poetry run python train.py
+    deps:
+      - train.py
+      - fashion-mnist_train.csv.zip
+      - fashion-mnist_test.csv.zip
+    outs:
+      - model.pkl
+
+
