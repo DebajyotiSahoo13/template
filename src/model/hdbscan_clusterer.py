@@ -10,7 +10,7 @@ Imports:
     - NumPy, hdbscan, MIN_CLUSTER_SIZE_FACTOR, MIN_SAMPLES_FACTOR, and plt from src.config
     - calculate_clustering_scores from src.utils.scores
 """
-
+from clearml import Task
 from typing import Dict, Any
 from src.config import (
     np, hdbscan, MIN_CLUSTER_SIZE_FACTOR, MIN_SAMPLES_FACTOR,plt
@@ -22,6 +22,11 @@ class HDBSCANClusterer:
 
     This class provides a method to run HDBSCAN clustering on given data.
     """
+    def __init__(self):
+        self.task = Task.init(
+            project_name='CAESAR',
+            task_name='hdbscan_clusterer'
+        )
 
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         """
@@ -46,6 +51,10 @@ class HDBSCANClusterer:
         labels = clusterer.fit_predict(features_scaled)
 
         scores = calculate_clustering_scores(features_scaled, labels)
+        for metric, score in scores.items():
+            self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
+            
+        self.task.connect({"min_cluster_size": min_cluster_size,"min_samples":min_samples})
 
         return {
             'scores': scores,
@@ -55,3 +64,7 @@ class HDBSCANClusterer:
                 'min_samples': min_samples
             }
         }
+        
+    def close_task(self):
+        if hasattr(self, 'task'):
+            self.task.close()

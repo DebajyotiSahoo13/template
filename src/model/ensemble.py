@@ -9,7 +9,7 @@ Imports:
     - NumPy, KMeans, silhouette_score,GaussianMixture, RandomForestClassifier,silhouette_score, linear_sum_assignment,MAX_CLUSTERS and matplotlib plt from src.config
     - calculate_clustering_scores from src.utils.scores
 """
-
+from clearml import Task
 from typing import Dict, Any
 from src.config import (
     np, pd, KMeans, GaussianMixture, RandomForestClassifier,
@@ -32,6 +32,10 @@ class EnsembleClusterer:
     def __init__(self):
         """Initialize the EnsembleClusterer."""
         self.max_clusters = MAX_CLUSTERS
+        self.task = Task.init(
+            project_name='CAESAR',
+            task_name='ensemble'
+        )
         
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         """
@@ -68,6 +72,9 @@ class EnsembleClusterer:
         best_labels = ensemble_labels[best_method_index]
 
         scores = calculate_clustering_scores(features_scaled, best_labels)
+        for metric, score in scores.items():
+            self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
+        self.task.connect({"n_clusters": optimal_n,"ensemble_type": best_method_index + 1})
 
         return {
             'scores': scores,
@@ -225,3 +232,7 @@ class EnsembleClusterer:
         for i, j in zip(row_ind, col_ind):
             aligned_labels[gmm_labels == j] = i
         return aligned_labels
+
+    def close_task(self):
+        if hasattr(self, 'task'):
+            self.task.close()
