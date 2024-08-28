@@ -15,15 +15,16 @@ from src.config import (
     np, NearestNeighbors, DBSCAN, K_NEIGHBORS, plt
 )
 from src.utils.scores import calculate_clustering_scores
-
 class DBSCANClusterer:
-    def __init__(self):
+    def __init__(self, task=None):
         self.k = K_NEIGHBORS
-        self.task = Task.init(  # Set task as an instance attribute
-            project_name='CAESAR',
-            task_name='dbscan'
-        )
-
+        if task is None:
+            self.task = Task.init(
+                project_name='CAESAR',
+                task_name='dbscan'
+            )
+        else:
+            self.task = task
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         neigh = NearestNeighbors(n_neighbors=self.k)
         neigh.fit(features_scaled)

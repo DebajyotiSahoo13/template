@@ -20,6 +20,14 @@ from src.config import (
 )
 from src.data.radar_synthetic import get_dataloader
 from src.model.agglomerative import AgglomerativeClusterer
+from unittest.mock import MagicMock
+
+@pytest.fixture
+def mock_task():
+    mock = MagicMock()
+    mock.logger.report_scalar = MagicMock()
+    mock.connect = MagicMock()
+    return mock
 
 @pytest.fixture
 def dataloader():
@@ -33,12 +41,12 @@ def features_scaled(dataloader):
     all_data = np.concatenate(all_data, axis=0)
     return all_data
 
-def test_agglomerative_init():
-    agglomerative = AgglomerativeClusterer()
+def test_agglomerative_init(mock_task):
+    agglomerative = AgglomerativeClusterer(task=mock_task)
     assert hasattr(agglomerative, 'run')
 
-def test_agglomerative_run(features_scaled):
-    agglomerative = AgglomerativeClusterer()
+def test_agglomerative_run(features_scaled, mock_task):
+    agglomerative = AgglomerativeClusterer(task=mock_task)
     results = agglomerative.run(None, features_scaled)
     
     assert 'scores' in results

@@ -21,13 +21,14 @@ class AgglomerativeClusterer:
 
     This class provides a method to run Agglomerative Clustering on given data and find the optimal number of clusters.
     """
-    def __init__(self):
-        self.task = Task.init(
-            project_name='CAESAR',
-            task_name='agglomerative'
-        )
-
-
+    def __init__(self, task=None):
+        if task is None:
+            self.task = Task.init(
+                project_name='CAESAR',
+                task_name='agglomerative'
+            )
+        else:
+            self.task = task
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         """
         Run Agglomerative Clustering on the given data.

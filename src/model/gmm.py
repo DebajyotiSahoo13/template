@@ -29,13 +29,16 @@ class GMMClusterer:
         The maximum number of components to consider, imported from src.config.
     """
 
-    def __init__(self):
+    def __init__(self, task=None):
         """Initialize the GMMClusterer."""
         self.max_components = MAX_COMPONENTS
-        self.task = Task.init(
-            project_name='CAESAR',
-            task_name='gmm'
-        )
+        if task is None:
+            self.task = Task.init(
+                project_name='CAESAR',
+                task_name='gmm'
+            )
+        else:
+            self.task = task
 
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         """

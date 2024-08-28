@@ -14,15 +14,17 @@ from src.config import (
     np, KMeans, silhouette_score, MAX_CLUSTERS, plt
 )
 from src.utils.scores import calculate_clustering_scores
-
+import os
 class KMeansClusterer:
-    def __init__(self):
+    def __init__(self, task=None):
         self.max_clusters = MAX_CLUSTERS
-        self.task = Task.init(
-            project_name='CAESAR',
-            task_name='kmeans'
-        )
-
+        if task is None:
+            self.task = Task.init(
+                project_name='CAESAR',
+                task_name='kmeans'
+            )
+        else:
+            self.task = task
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         inertia = []
         silhouette_scores = []

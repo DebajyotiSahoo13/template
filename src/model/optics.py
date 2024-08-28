@@ -22,11 +22,14 @@ class OPTICSClusterer:
 
     This class provides a method to run OPTICS clustering on given data.
     """
-    def __init__(self):
-        self.task = Task.init(
-            project_name='CAESAR',
-            task_name='optics'
-        )
+    def __init__(self, task=None):
+        if task is None:
+            self.task = Task.init(
+                project_name='CAESAR',
+                task_name='optics'
+            )
+        else:
+            self.task = task
 
 
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:

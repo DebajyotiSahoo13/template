@@ -3,7 +3,6 @@ import torch
 import torch.nn.functional as F
 from torchvision.models import resnet101, ResNet101_Weights
 from torch.nn import TripletMarginLoss
-from clearml import Task
 class SiameseNetwork(nn.Module):
     """
     Defines the Siamese Neural Network Class
@@ -16,10 +15,6 @@ class SiameseNetwork(nn.Module):
         self.resnet = nn.Sequential(*list(self.resnet.children())[:-1])
         self.fc = nn.Linear(2048, embedding_dim)  # ResNet101 has 2048 features in the last layer
         self.classifier = nn.Linear(embedding_dim, num_classes)
-        self.task = Task.init(
-            project_name='CAESAR',
-            task_name='siamese'
-        )
 
     def forward_once(self, x):
         # x shape: (batch_size, 1024, 2)
@@ -101,6 +96,3 @@ class SiameseNetwork(nn.Module):
         print(f'Classification Accuracy: {classification_correct}/{total_samples} '
               f'({classification_accuracy:.2f}%)\n')
         
-    def close_task(self):
-        if hasattr(self, 'task'):
-            self.task.close()

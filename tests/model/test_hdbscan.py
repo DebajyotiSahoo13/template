@@ -20,6 +20,14 @@ from src.config import (
 )
 from src.data.radar_synthetic import get_dataloader
 from src.model.hdbscan_clusterer import HDBSCANClusterer
+from unittest.mock import MagicMock
+
+@pytest.fixture
+def mock_task():
+    mock = MagicMock()
+    mock.logger.report_scalar = MagicMock()
+    mock.connect = MagicMock()
+    return mock
 
 @pytest.fixture
 def dataloader():
@@ -48,16 +56,16 @@ def features_scaled(dataloader):
     all_data = np.concatenate(all_data, axis=0)
     return all_data
 
-def test_hdbscan_init():
+def test_hdbscan_init(mock_task):
     """
     Test the initialization of HDBSCANClusterer.
 
     Ensures that the HDBSCANClusterer instance has a 'run' method.
     """
-    hdbscan = HDBSCANClusterer()
+    hdbscan = HDBSCANClusterer(task=mock_task)
     assert hasattr(hdbscan, 'run')
 
-def test_hdbscan_run(features_scaled):
+def test_hdbscan_run(features_scaled, mock_task):
     """
     Test the run method of HDBSCANClusterer.
 
@@ -66,7 +74,7 @@ def test_hdbscan_run(features_scaled):
 
     Ensures that the run method returns a dictionary with expected keys and value types.
     """
-    hdbscan = HDBSCANClusterer()
+    hdbscan = HDBSCANClusterer(task=mock_task)
     results = hdbscan.run(None, features_scaled)
     
     assert 'scores' in results

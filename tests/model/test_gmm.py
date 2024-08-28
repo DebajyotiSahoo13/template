@@ -20,7 +20,14 @@ from src.config import (
 )
 from src.data.radar_synthetic import get_dataloader
 from src.model.gmm import GMMClusterer
+from unittest.mock import MagicMock
 
+@pytest.fixture
+def mock_task():
+    mock = MagicMock()
+    mock.logger.report_scalar = MagicMock()
+    mock.connect = MagicMock()
+    return mock
 @pytest.fixture
 def dataloader():
     """
@@ -48,18 +55,18 @@ def features_scaled(dataloader):
     all_data = np.concatenate(all_data, axis=0)
     return all_data
 
-def test_gmm_init():
+def test_gmm_init(mock_task):
     """
     Test the initialization of GMMClusterer.
 
     Ensures that the GMMClusterer instance has a 'max_components' attribute
     and that it's greater than 0.
     """
-    gmm = GMMClusterer()
+    gmm = GMMClusterer(task=mock_task)
     assert hasattr(gmm, 'max_components')
     assert gmm.max_components > 0
 
-def test_gmm_run(features_scaled):
+def test_gmm_run(features_scaled, mock_task):
     """
     Test the run method of GMMClusterer.
 
@@ -68,7 +75,7 @@ def test_gmm_run(features_scaled):
 
     Ensures that the run method returns a dictionary with expected keys and value types.
     """
-    gmm = GMMClusterer()
+    gmm = GMMClusterer(task=mock_task)
     results = gmm.run(None, features_scaled)
     
     assert 'scores' in results
