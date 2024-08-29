@@ -18,18 +18,11 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from src.config import (
-    np, pd, pytest, BATCH_SIZE
+    np, pd, pytest, BATCH_SIZE, mock_task
 )
 from src.data.radar_synthetic import get_dataloader
 from src.model.ensemble import EnsembleClusterer
-from unittest.mock import MagicMock
 
-@pytest.fixture
-def mock_task():
-    mock = MagicMock()
-    mock.logger.report_scalar = MagicMock()
-    mock.connect = MagicMock()
-    return mock
 
 @pytest.fixture
 def dataloader():

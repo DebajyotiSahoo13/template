@@ -15,6 +15,8 @@ from src.config import (
     np, NearestNeighbors, DBSCAN, K_NEIGHBORS, plt
 )
 from src.utils.scores import calculate_clustering_scores
+from src.utils.visualization import plot_dbscan
+
 class DBSCANClusterer:
     def __init__(self, task=None):
         self.k = K_NEIGHBORS
@@ -25,6 +27,7 @@ class DBSCANClusterer:
             )
         else:
             self.task = task
+
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         neigh = NearestNeighbors(n_neighbors=self.k)
         neigh.fit(features_scaled)
@@ -41,6 +44,9 @@ class DBSCANClusterer:
         scores = calculate_clustering_scores(features_scaled, clusters)
         for metric, score in scores.items():
             self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
+        
+        # Plot and log the clustering results
+        plot_dbscan(features_scaled, clusters, self.task)
         
         self.task.connect({"eps": eps, "min_samples": min_samples})
 

@@ -13,15 +13,12 @@ Imports:
 from clearml import Task
 from typing import Dict, Any
 from src.config import (
-    np, hdbscan, MIN_CLUSTER_SIZE_FACTOR, MIN_SAMPLES_FACTOR,plt
+    np, hdbscan, MIN_CLUSTER_SIZE_FACTOR, MIN_SAMPLES_FACTOR, plt
 )
 from src.utils.scores import calculate_clustering_scores
-class HDBSCANClusterer:
-    """
-    A class for performing HDBSCAN clustering.
+from src.utils.visualization import plot_hdbscan
 
-    This class provides a method to run HDBSCAN clustering on given data.
-    """
+class HDBSCANClusterer:
     def __init__(self, task=None):
         if task is None:
             self.task = Task.init(
@@ -31,23 +28,7 @@ class HDBSCANClusterer:
         else:
             self.task = task
 
-
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
-        """
-        Run HDBSCAN Clustering algorithm.
-
-        Parameters
-        ----------
-        _ : Any
-            Unused parameter (kept for consistency with other clusterers).
-        features_scaled : np.ndarray
-            The scaled feature array to cluster.
-
-        Returns
-        -------
-        Dict[str, Any]
-            A dictionary containing the clustering scores, labels, and parameters used.
-        """
         min_cluster_size = max(5, int(MIN_CLUSTER_SIZE_FACTOR * len(features_scaled)))
         min_samples = max(5, int(MIN_SAMPLES_FACTOR * len(features_scaled)))
 
@@ -57,8 +38,11 @@ class HDBSCANClusterer:
         scores = calculate_clustering_scores(features_scaled, labels)
         for metric, score in scores.items():
             self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
-            
-        self.task.connect({"min_cluster_size": min_cluster_size,"min_samples":min_samples})
+        
+        # Plot and log the clustering results
+        plot_hdbscan(features_scaled, labels, self.task)
+        
+        self.task.connect({"min_cluster_size": min_cluster_size, "min_samples": min_samples})
 
         return {
             'scores': scores,

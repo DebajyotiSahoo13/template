@@ -12,16 +12,13 @@ Imports:
 from typing import Dict, Any
 from src.config import (
     np, OPTICS, NearestNeighbors,
-    MIN_SAMPLES_FACTOR, XI, MIN_CLUSTER_SIZE_FACTOR,plt
+    MIN_SAMPLES_FACTOR, XI, MIN_CLUSTER_SIZE_FACTOR, plt
 )
 from src.utils.scores import calculate_clustering_scores
+from src.utils.visualization import plot_optics
 from clearml import Task
-class OPTICSClusterer:
-    """
-    A class for performing OPTICS clustering.
 
-    This class provides a method to run OPTICS clustering on given data.
-    """
+class OPTICSClusterer:
     def __init__(self, task=None):
         if task is None:
             self.task = Task.init(
@@ -31,25 +28,7 @@ class OPTICSClusterer:
         else:
             self.task = task
 
-
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
-        """
-        Run OPTICS Clustering algorithm.
-
-        Parameters
-        ----------
-        _ : Any
-            Unused parameter (kept for consistency with other clusterers).
-        features_scaled : np.ndarray
-            The scaled feature array to cluster.
-
-        Returns
-        -------
-        Dict[str, Any]
-            A dictionary containing the clustering scores, labels, cluster densities,
-            and parameters used.
-        """
-        
         min_samples = max(5, int(MIN_SAMPLES_FACTOR * len(features_scaled)))
         min_cluster_size = max(5, int(MIN_CLUSTER_SIZE_FACTOR * len(features_scaled)))
 
@@ -71,8 +50,11 @@ class OPTICSClusterer:
                 
         for metric, score in scores.items():
             self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
-            
-        self.task.connect({"min_samples": min_samples,"xi": XI,"min_cluster_size":min_cluster_size})
+        
+        # Plot and log the clustering results
+        plot_optics(features_scaled, labels, self.task)
+        
+        self.task.connect({"min_samples": min_samples, "xi": XI, "min_cluster_size": min_cluster_size})
 
         return {
             'scores': scores,

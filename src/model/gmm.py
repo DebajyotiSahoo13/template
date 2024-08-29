@@ -13,24 +13,13 @@ from typing import Dict, Any
 from clearml import Task
 from src.config import (
     np, GaussianMixture, silhouette_score,
-    MAX_COMPONENTS, RANDOM_STATE,plt
+    MAX_COMPONENTS, RANDOM_STATE, plt
 )
 from src.utils.scores import calculate_clustering_scores
+from src.utils.visualization import plot_gmm
+
 class GMMClusterer:
-    """
-    A class for performing Gaussian Mixture Model (GMM) clustering.
-
-    This class provides methods to run GMM clustering on given data
-    and find the optimal number of components.
-
-    Attributes
-    ----------
-    max_components : int
-        The maximum number of components to consider, imported from src.config.
-    """
-
     def __init__(self, task=None):
-        """Initialize the GMMClusterer."""
         self.max_components = MAX_COMPONENTS
         if task is None:
             self.task = Task.init(
@@ -41,22 +30,6 @@ class GMMClusterer:
             self.task = task
 
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
-        """
-        Run GMM clustering on the given data.
-
-        Parameters
-        ----------
-        _ : Any Unused parameter (kept for consistency with other clusterers).
-        
-        features_scaled : np.ndarray
-            The scaled feature array to cluster.
-
-        Returns
-        -------
-        Dict[str, Any]
-            A dictionary containing the clustering scores and the optimal
-            number of components.
-        """
         silhouette_scores = []
         bic_scores = []
 
@@ -76,14 +49,20 @@ class GMMClusterer:
         gmm.fit(features_scaled)
         labels = gmm.predict(features_scaled)
         scores = calculate_clustering_scores(features_scaled, labels)
+        
         for metric, score in scores.items():
             self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
-        self.task.connect({"n_clusters": optimal_k})
+        
+        # Plot and log the clustering results
+        plot_gmm(features_scaled, labels, self.task)
+        
+        self.task.connect({"n_components": optimal_k})
 
         return {
             'scores': scores,
             'optimal_k': optimal_k
         }
+
     def close_task(self):
         if hasattr(self, 'task'):
             self.task.close()

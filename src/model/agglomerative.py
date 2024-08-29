@@ -12,9 +12,11 @@ Imports:
 from typing import Dict, Any
 from clearml import Task
 from src.config import (
-    np, AgglomerativeClustering, silhouette_score, MAX_CLUSTERS,plt
+    np, AgglomerativeClustering, silhouette_score, MAX_CLUSTERS, plt
 )
 from src.utils.scores import calculate_clustering_scores
+from src.utils.visualization import plot_agglomerative
+
 class AgglomerativeClusterer:
     """
     A class for performing Agglomerative Clustering.
@@ -29,6 +31,7 @@ class AgglomerativeClusterer:
             )
         else:
             self.task = task
+
     def run(self, _, features_scaled: np.ndarray) -> Dict[str, Any]:
         """
         Run Agglomerative Clustering on the given data.
@@ -36,7 +39,7 @@ class AgglomerativeClusterer:
         Parameters
         ----------
         _ : Any
-            Unused parameter (kept for consistency with otherclusterers).
+            Unused parameter (kept for consistency with other clusterers).
             
         features_scaled : np.ndarray
             The scaled feature array to cluster.
@@ -63,6 +66,10 @@ class AgglomerativeClusterer:
         scores = calculate_clustering_scores(features_scaled, labels)
         for metric, score in scores.items():
             self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
+        
+        # Plot and log the clustering results
+        plot_agglomerative(features_scaled, labels, self.task)
+        
         self.task.connect({"n_clusters": optimal_k})
 
         return {
@@ -70,6 +77,7 @@ class AgglomerativeClusterer:
             'labels': labels,
             'optimal_k': optimal_k
         }
+
     def close_task(self):
         if hasattr(self, 'task'):
             self.task.close()

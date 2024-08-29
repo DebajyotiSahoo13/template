@@ -55,7 +55,7 @@ from torch.nn import TripletMarginLoss, TripletMarginWithDistanceLoss
 from src.data.deepsig_data import RadioSignalDataset, load_and_split_data, print_class_distribution
 from src.utils.visualisation.visualisation import get_embeddings, visualize_embeddings, visualize_embeddings_umap
 from src.model.siamese import SiameseNetwork
-
+from unittest.mock import MagicMock
 # Constants
 MAX_CLUSTERS = 10
 MAX_COMPONENTS = 10
@@ -70,6 +70,12 @@ MIN_SAMPLES_FACTOR = 0.01
 # OPTICS parameters
 XI = 0.05
 
+@pytest.fixture
+def mock_task():
+    mock = MagicMock()
+    mock.logger.report_scalar = MagicMock()
+    mock.connect = MagicMock()
+    return mock
 # Make all imported modules and functions available
 __all__ = [
     'np', 'pd', 'plt', 'Axes3D', 'torch', 'nn', 'F', 'optim', 'Dataset', 'DataLoader',

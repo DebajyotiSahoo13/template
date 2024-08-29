@@ -16,6 +16,7 @@ from src.config import (
     silhouette_score, linear_sum_assignment, MAX_CLUSTERS
 )
 from src.utils.scores import calculate_clustering_scores
+from src.utils.visualization import plot_ensemble
 
 class EnsembleClusterer:
     """
@@ -77,7 +78,11 @@ class EnsembleClusterer:
         scores = calculate_clustering_scores(features_scaled, best_labels)
         for metric, score in scores.items():
             self.task.logger.report_scalar(title="Clustering Score", series=metric, value=score, iteration=0)
-        self.task.connect({"n_clusters": optimal_n,"ensemble_type": best_method_index + 1})
+        
+        # Plot and log the clustering results
+        plot_ensemble(features_scaled, best_labels, self.task)
+        
+        self.task.connect({"n_clusters": optimal_n, "ensemble_type": best_method_index + 1})
 
         return {
             'scores': scores,
